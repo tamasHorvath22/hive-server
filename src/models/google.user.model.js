@@ -6,7 +6,7 @@ let googleUserSchema = new Schema({
   nickname: { type : String },
   firstname: { type : String },
   lastname: { type : String },
-  role: { type : String }
+  apiaries: { type : Array }
 }, { timestamps: true });
 
 module.exports = mongoose.model(schemas.GOOGE_USER, googleUserSchema);

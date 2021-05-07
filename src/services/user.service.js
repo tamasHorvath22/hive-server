@@ -1,6 +1,5 @@
 const GoogleUser = require("../models/google.user.model");
 const RegisterTokenDoc = require("../persistence/register.token.doc");
-const RealmDoc = require("../persistence/realm.doc");
 const UserTransaction = require("../persistence/user.transaction");
 const jwt = require("jsonwebtoken");
 const config = require("../config");

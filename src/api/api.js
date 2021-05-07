@@ -1,10 +1,9 @@
 const jwt = require("jsonwebtoken");
 const userApi = require("./user.api");
-const realmApi = require("./realm.api");
+const hiveApi = require("./hive.api");
 const config = require("../config");
 const responseMessage = require("../constants/api-response-messages");
 const bodyParser = require("body-parser");
-const jsonParser = bodyParser.json();
 
 module.exports = function (app, ProtectedRoutes) {
   app.use("/api", ProtectedRoutes);
@@ -30,5 +29,5 @@ module.exports = function (app, ProtectedRoutes) {
   });
 
   userApi(app);
-  realmApi(ProtectedRoutes)
+  hiveApi(ProtectedRoutes)
 };
