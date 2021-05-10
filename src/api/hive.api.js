@@ -8,6 +8,9 @@ module.exports = function (app) {
     res.send(await HiveService.getUserDataApi(req.decoded.userId));
   });
 
+  app.get("/apiary-data/:apiaryId", jsonParser, async (req, res) => {
+    res.send(await HiveService.getApiaryDataApi(req.params.apiaryId, req.decoded.userId));
+  });
 
   /* 
     request: 
@@ -17,6 +20,17 @@ module.exports = function (app) {
   */
   app.post("/create-apiary", jsonParser, async (req, res) => {
     res.send(await HiveService.createApiaryApi(req.body.name, req.decoded.userId));
+  });
+
+  /* 
+    request: 
+    { 
+      apiaryId: the ID of the apiary
+      siteName: the name of the new site
+    }
+  */
+  app.post("/add-site", jsonParser, async (req, res) => {
+    res.send(await HiveService.addSite(req.body, req.decoded.userId));
   });
 
 
