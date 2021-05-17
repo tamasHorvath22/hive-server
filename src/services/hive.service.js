@@ -2,6 +2,8 @@ const GoogleUserDoc = require('../persistence/google.user.doc');
 const ApiaryDoc = require('../persistence/apiary.doc');
 const ApiaryTransactions = require('../persistence/apiary-transactions');
 const Apiary = require('../models/apiary.model');
+const Site = require('../models/site.model');
+const Hive = require('../models/hive');
 const responseMessage = require('../constants/api-response-messages');
 
 const getUserDataApi = async (userId) => {
@@ -20,10 +22,8 @@ const getApiaryDataApi = async (apiaryId, userId) => {
   const apiary = await ApiaryDoc.getById(apiaryId);
   const user = await GoogleUserDoc.getUserById(userId.toString());
   if (
-    !apiary ||
-    apiary === responseMessage.DATABASE.ERROR ||
-    !user ||
-    user === responseMessage.DATABASE.ERROR
+    !apiary || apiary === responseMessage.DATABASE.ERROR ||
+    !user || user === responseMessage.DATABASE.ERROR
   ) {
     return { error: responseMessage.DATABASE.ERROR };
   }
@@ -62,7 +62,11 @@ const addSite = async (data, userId) => {
   ) {
     return { error: responseMessage.DATABASE.ERROR };
   }
-  apiary.sites.push(data.siteName);
+  const newSite = Site({
+    name: data.siteName,
+    creator: userId
+  });
+  apiary.sites.push(newSite);
   const result = await ApiaryTransactions.saveApiary(apiary);
   if (result) {
     return result;
@@ -105,11 +109,57 @@ const createApiary = async (name, user) => {
     console.log(err);
     return false;
   }
-} 
+}
+
+const isSiteIdInvald = (sites, siteId) => {
+  for (const site of sites) {
+    if (site._id.toString() === siteId.toString()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+const findLowestHiveNumber = (hives) => {
+  if (!hives.length) {
+    return 1;
+  }
+  const hiveNumbers = hives.map(h => h.number).sort((a, b) => a - b);
+  for (let i = 0; i < hiveNumbers.length - 1; i++) {
+    if (hiveNumbers[i] + 1 !== hiveNumbers[i + 1]) {
+      return hiveNumbers[i] + 1;
+    }
+  }
+  return hiveNumbers[hiveNumbers.length - 1] + 1;
+}
+
+const createHiveApi = async (data, userId) => {
+  const apiary = await ApiaryDoc.getById(data.apiaryId);
+  if (!apiary || apiary === responseMessage.DATABASE.ERROR) {
+    return { error: responseMessage.DATABASE.ERROR };
+  }
+  if (isSiteIdInvald(apiary.sites, data.siteId)) {
+    return { error: responseMessage.DATABASE.ERROR };
+  }
+  const newHive = Hive({
+    number: findLowestHiveNumber(apiary.hives),
+    creator: userId,
+    posts: [],
+    site: data.siteId,
+  });
+  apiary.hives.push(newHive);
+  const result = await ApiaryTransactions.saveApiary(apiary);
+  if (result) {
+    return result;
+  } else {
+    return { error: responseMessage.DATABASE.ERROR };
+  }
+}
 
 module.exports = {
   getUserDataApi: getUserDataApi,
   createApiaryApi: createApiaryApi,
   addSite: addSite,
-  getApiaryDataApi: getApiaryDataApi
+  getApiaryDataApi: getApiaryDataApi,
+  createHiveApi: createHiveApi
 };

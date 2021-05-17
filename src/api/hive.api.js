@@ -26,6 +26,17 @@ module.exports = function (app) {
     request: 
     { 
       apiaryId: the ID of the apiary
+      siteId: the name of the selected site,
+    }
+  */
+  app.post("/create-hive", jsonParser, async (req, res) => {
+    res.send(await HiveService.createHiveApi(req.body, req.decoded.userId));
+  });
+
+  /* 
+    request: 
+    { 
+      apiaryId: the ID of the apiary
       siteName: the name of the new site
     }
   */

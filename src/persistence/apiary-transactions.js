@@ -3,6 +3,9 @@ const schemas = require('../constants/schemas');
 
 const saveApiary = async (apiary) => {
   const transaction = new Transaction(true);
+  apiary.markModified('sites');
+  apiary.markModified('hives');
+  apiary.markModified('collaborators');
   transaction.insert(schemas.APIARY, apiary);
   try {
     const result = await transaction.run();
@@ -16,6 +19,9 @@ const saveApiary = async (apiary) => {
 
 const saveApiaryAndUser = async (apiary, user) => {
   const transaction = new Transaction(true);
+  apiary.markModified('sites');
+  apiary.markModified('hives');
+  apiary.markModified('collaborators');
   transaction.insert(schemas.APIARY, apiary);
   transaction.insert(schemas.GOOGE_USER, user);
   try {

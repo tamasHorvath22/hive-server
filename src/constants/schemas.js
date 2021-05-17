@@ -1,5 +1,8 @@
 module.exports = Object.freeze({
   GOOGE_USER: 'GOOGE_USER',
   REGISTER_TOKEN: 'REGISTER_TOKEN',
-  APIARY: 'APIARY'
+  APIARY: 'APIARY',
+  HIVE: 'HIVE',
+  HIVE_POST: 'HIVE_POST',
+  SITE: 'SITE'
 })
