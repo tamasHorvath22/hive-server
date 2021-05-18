@@ -25,6 +25,16 @@ module.exports = function (app) {
   /* 
     request: 
     { 
+      apiaryId: the name of the apiary,
+    }
+  */
+  app.post("/create-invite-link", jsonParser, async (req, res) => {
+    res.send(await HiveService.createInviteLink(req.body.apiaryId, req.decoded.userId));
+  });
+
+  /* 
+    request: 
+    { 
       apiaryId: the ID of the apiary
       siteId: the name of the selected site,
     }
@@ -32,6 +42,18 @@ module.exports = function (app) {
   app.post("/create-hive", jsonParser, async (req, res) => {
     res.send(await HiveService.createHiveApi(req.body, req.decoded.userId));
   });
+
+  /* 
+    request: 
+    { 
+      apiaryId: the ID of the apiary
+      hiveId: the ID of the selected hive
+      siteId: this ID of the selected site
+    }
+  */
+    app.post("/update-hive", jsonParser, async (req, res) => {
+      res.send(await HiveService.updateHiveApi(req.body, req.decoded.userId));
+    });
 
   /* 
     request: 

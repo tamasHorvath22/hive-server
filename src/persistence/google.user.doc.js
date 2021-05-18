@@ -19,8 +19,28 @@ const getByRole = async (role) => {
   }
 }
 
+const getByNickname = async (nickname) => {
+  try {
+    return await GoogleUser.findOne({ nickname: nickname }).exec();
+  } catch(err) {
+    console.error(err);
+    return responseMessage.DATABASE.ERROR;
+  }
+}
+
+const getAll = async () => {
+  try {
+    return await GoogleUser.find({}).exec();
+  } catch(err) {
+    console.error(err);
+    return responseMessage.DATABASE.ERROR;
+  }
+}
+
 module.exports = {
   getUserById: getUserById,
-  getByRole: getByRole
+  getByRole: getByRole,
+  getAll: getAll,
+  getByNickname: getByNickname
   // getUserByUsername: getUserByUsername,
 }

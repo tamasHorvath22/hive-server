@@ -1,18 +1,12 @@
 const Transaction = require('mongoose-transactions');
 const schemas = require('../constants/schemas');
 
-const registerUserDeleteToken = async (googleUser, token, realm) => {
+const registerUserDeleteToken = async (googleUser, token, apiary) => {
   const transaction = new Transaction(true);
-  if (realm) {
-    realm.markModified('students');
-    realm.markModified('clans');
-    realm.markModified('monsters');
-  }
+  apiary.markModified('collaborators');
   transaction.insert(schemas.GOOGE_USER, googleUser);
   transaction.remove(schemas.REGISTER_TOKEN, token);
-  if (realm) {
-    transaction.insert(schemas.REALM, realm);
-  }
+  transaction.insert(schemas.APIARY, apiary);
   try {
     const result = await transaction.run();
     return result[0];

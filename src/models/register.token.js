@@ -3,8 +3,7 @@ const schemas = require('../constants/schemas');
 const Schema = mongoose.Schema;
 
 let registerTokenSchema = new Schema({
-  role: { type : String },
-  studentData: { type : Object },
+  apiaryId: { type : String },
   expiresAt: { type : Number }
 }, { timestamps: true });
 

@@ -22,6 +22,7 @@ const saveApiaryAndUser = async (apiary, user) => {
   apiary.markModified('sites');
   apiary.markModified('hives');
   apiary.markModified('collaborators');
+  user.markModified('apiaries');
   transaction.insert(schemas.APIARY, apiary);
   transaction.insert(schemas.GOOGE_USER, user);
   try {

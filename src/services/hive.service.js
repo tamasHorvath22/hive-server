@@ -4,6 +4,7 @@ const ApiaryTransactions = require('../persistence/apiary-transactions');
 const Apiary = require('../models/apiary.model');
 const Site = require('../models/site.model');
 const Hive = require('../models/hive');
+const RegisterToken = require('../models/register.token');
 const responseMessage = require('../constants/api-response-messages');
 
 const getUserDataApi = async (userId) => {
@@ -40,16 +41,18 @@ const mapApiaryData = (apiaries) => {
   })
 }
 
-const isApiaryNameWrong = (name) => {
-  return typeof name !== 'string' || !name;
+const isStringWrong = (value) => {
+  return typeof value !== 'string' || !value;
 }
 
-const isSiteNameWrong = (siteName) => {
-  return typeof siteName !== 'string' || !siteName;
+const isUserAuthorized = (apiary, userId) => {
+  const isOwner = apiary.owner.toString() === userId.toString();
+  const isCollaborator = isUserCollaborator(apiary.collaborators, userId);
+  return isOwner || isCollaborator;
 }
 
 const addSite = async (data, userId) => {
-  if (isSiteNameWrong(data.siteName)) {
+  if (isStringWrong(data.siteName)) {
     return { error: responseMessage.DATABASE.ERROR };
   }
   const apiary = await ApiaryDoc.getById(data.apiaryId);
@@ -60,6 +63,9 @@ const addSite = async (data, userId) => {
     !user ||
     user === responseMessage.DATABASE.ERROR
   ) {
+    return { error: responseMessage.DATABASE.ERROR };
+  }
+  if (!isUserAuthorized(apiary, userId)) {
     return { error: responseMessage.DATABASE.ERROR };
   }
   const newSite = Site({
@@ -76,7 +82,7 @@ const addSite = async (data, userId) => {
 }
 
 const createApiaryApi = async (name, userId) => {
-  if (isApiaryNameWrong(name)) {
+  if (isStringWrong(name)) {
     return { error: responseMessage.DATABASE.ERROR };
   }
   const user = await GoogleUserDoc.getUserById(userId.toString());
@@ -138,7 +144,7 @@ const createHiveApi = async (data, userId) => {
   if (!apiary || apiary === responseMessage.DATABASE.ERROR) {
     return { error: responseMessage.DATABASE.ERROR };
   }
-  if (isSiteIdInvald(apiary.sites, data.siteId)) {
+  if (!isUserAuthorized(apiary, userId) || isSiteIdInvald(apiary.sites, data.siteId)) {
     return { error: responseMessage.DATABASE.ERROR };
   }
   const newHive = Hive({
@@ -156,10 +162,63 @@ const createHiveApi = async (data, userId) => {
   }
 }
 
+const findElemById = (array, id) => {
+  if (!array || !array.length || !id) {
+    return null;
+  }
+  return array.find(e => e._id.toString() === id.toString());
+}
+
+const isUserCollaborator = (collaborators, userId) => {
+  for (const collaborator of collaborators) {
+    if (collaborator.toString() === userId.toString()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+const updateHiveApi = async (data, userId) => {
+  const apiary = await ApiaryDoc.getById(data.apiaryId);
+  if (!apiary || apiary === responseMessage.DATABASE.ERROR) {
+    return { error: responseMessage.DATABASE.ERROR };
+  }
+  if (!isUserAuthorized(apiary, userId)) {
+    return { error: responseMessage.DATABASE.ERROR };
+  }
+  const site = findElemById(apiary.sites, data.siteId);
+  const hive = findElemById(apiary.hives, data.hiveId);
+  if (!site || !hive) {
+    return { error: responseMessage.DATABASE.ERROR };
+  }
+  hive.site = site._id;
+  const result = await ApiaryTransactions.saveApiary(apiary);
+  if (result) {
+    return result;
+  } else {
+    return { error: responseMessage.DATABASE.ERROR };
+  }
+}
+
+const createInviteLink = async (apiaryId, userId) => {
+  const apiary = await ApiaryDoc.getById(apiaryId);
+  if (!apiary || apiary === responseMessage.DATABASE.ERROR || apiary.owner.toString() !== userId) {
+    return { error: responseMessage.DATABASE.ERROR };
+  }
+  const token = RegisterToken({
+    apiaryId: apiary._id.toString(),
+    expiresAt: new Date().getTime() + 1000 * 60* 60 * 24 * 7
+  })
+  token.save();
+  return { token: token._id.toString() };
+}
+
 module.exports = {
   getUserDataApi: getUserDataApi,
   createApiaryApi: createApiaryApi,
   addSite: addSite,
   getApiaryDataApi: getApiaryDataApi,
-  createHiveApi: createHiveApi
+  createHiveApi: createHiveApi,
+  updateHiveApi: updateHiveApi,
+  createInviteLink: createInviteLink
 };
